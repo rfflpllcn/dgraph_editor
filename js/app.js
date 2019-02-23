@@ -3,6 +3,7 @@ const width = 960;
 const height = 500;
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
+
 const svg = d3.select('body')
     .append('svg')
     .attr('oncontextmenu', 'return false;')
@@ -26,16 +27,17 @@ const links = [
 
 // init D3 force layout
 const force = d3.forceSimulation()
-    .force('link', d3.forceLink().id((d) => d.id).distance(150))
-    .force('charge', d3.forceManyBody().strength(-500))
+    .force('link', d3.forceLink().id((d) => d.id).distance(50)) //forceLink: for creating a fixed distance between connected elements
+    .force('charge', d3.forceManyBody().strength(-300)) //forceManyBody: for making elements attract or repel one another
     .force('x', d3.forceX(width / 2))
     .force('y', d3.forceY(height / 2))
+    //.force('center', d3.forceCenter(100, 100))
     .on('tick', tick);
 
 // init D3 drag support
 const drag = d3.drag()
     .on('start', (d) => {
-        //if (!d3.event.active) force.alphaTarget(0.3).restart();
+        if (!d3.event.active) force.alphaTarget(1.0).restart();
 
         d.fx = d.x;
         d.fy = d.y;
@@ -45,7 +47,7 @@ const drag = d3.drag()
         d.fy = d3.event.y;
     })
     .on('end', (d) => {
-        //if (!d3.event.active) force.alphaTarget(0);
+        if (!d3.event.active) force.alphaTarget(0);
 
         d.fx = null;
         d.fy = null;
@@ -89,11 +91,13 @@ let selectedLink = null;
 let mousedownLink = null;
 let mousedownNode = null;
 let mouseupNode = null;
+let mouseoverNode = null;
 
 function resetMouseVars() {
     mousedownNode = null;
     mouseupNode = null;
     mousedownLink = null;
+    mouseoverNode = null;
 }
 
 // update force layout (called automatically each iteration)
@@ -169,16 +173,20 @@ function restart() {
         .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
         .style('stroke', (d) => d3.rgb(colors(d.id)).darker().toString())
         .classed('reflexive', (d) => d.reflexive)
-        .on('mouseover', function (d) {
-            if (!mousedownNode || d === mousedownNode) return;
-            // enlarge target node
-            d3.select(this).attr('transform', 'scale(1.1)');
-        })
-        .on('mouseout', function (d) {
-            if (!mousedownNode || d === mousedownNode) return;
-            // unenlarge target node
-            d3.select(this).attr('transform', '');
-        })
+        // .on('mouseover', function (d) {
+        //     if (!mousedownNode || d === mousedownNode) return;
+        //     // enlarge target node
+        //     d3.select(this).attr('transform', 'scale(1.1)');
+        // })
+        .on('mouseover', mouseover)
+        // .on('mouseout', function (d) {
+        //     console.log("mouseout", d === mouseoverNode)
+        //     if (d === mouseoverNode) {mouseout;}
+        //     if (!mousedownNode || d === mousedownNode) return;
+        //     // unenlarge target node
+        //     d3.select(this).attr('transform', '');
+        // })
+        .on('mouseout', mouseout)
         .on('mousedown', (d) => {
             if (d3.event.ctrlKey) return;
 
@@ -231,6 +239,36 @@ function restart() {
             selectedNode = null;
             restart();
         });
+
+
+    function mouseover(d) {
+        console.log("over", d);
+        mouseoverNode = d;
+        d3.select(this).transition()
+            .duration(750)
+            .attr("r", 16);
+    }
+
+
+// .on('mouseout', function (d) {
+//         console.log("mouseout", d === mouseoverNode)
+//         if (d === mouseoverNode) {mouseout;}
+//         if (!mousedownNode || d === mousedownNode) return;
+//         // unenlarge target node
+//         d3.select(this).attr('transform', '');
+//     })
+
+    function mouseout(d) {
+        console.log("out", mouseoverNode);
+        //if (!mousedownNode || d === mousedownNode) return;
+        // unenlarge target node
+        //d3.select(this).attr('transform', '');
+
+        mouseoverNode = null;
+        d3.select(this).transition()
+            .duration(750)
+            .attr("r", 12);
+    }
 
     // show node IDs
     g.append('svg:text')
