@@ -14,7 +14,7 @@ svg:not(.active):not(.ctrl) {
 
 path.link {
     fill: none;
-    stroke: #000;
+    /*stroke: #000;*/
     stroke-width: 4px;
     cursor: default;
 }
@@ -29,6 +29,7 @@ path.link.selected {
 
 path.link.dragline {
     pointer-events: none;
+    stroke: #000;
 }
 
 path.link.hidden {

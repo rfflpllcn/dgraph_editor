@@ -1,8 +1,8 @@
 // set up SVG for D3
 const width = 960;
 const height = 500;
-const colors = d3.scaleOrdinal(d3.schemeCategory10);
-
+//const colors = d3.scaleOrdinal(d3.schemeCategory10);
+const colors = {cash: "yellow", eq: "blue", ob: "green", aa: "orange", fx: "red"};
 
 const svg = d3.select('body')
     .append('svg')
@@ -15,15 +15,32 @@ const svg = d3.select('body')
 //  - reflexive edges are indicated on the node (as a bold black circle).
 //  - links are always source < target; edge directions are set by 'left' and 'right'.
 const nodes = [
-    { id: 0, reflexive: false },
-    { id: 1, reflexive: true },
-    { id: 2, reflexive: false }
+    { id: 0, reflexive: false, name: "LIQ-CHF", type: "cash"},
+    { id: 1, reflexive: true, name: "EQ-WELT", type: "eq" },
+    { id: 2, reflexive: false, name: "OB-WELT", type: "ob" },
+    { id: 3, reflexive: false, name: "EQ-CH", type: "eq" },
+    { id: 4, reflexive: false, name: "EQ-EMU", type: "eq" },
+    { id: 5, reflexive: false, name: "EQ-UK", type: "eq" },
+    { id: 6, reflexive: false, name: "EQ-US", type: "eq" },
+    { id: 7, reflexive: false, name: "OBL-CHF", type: "ob" },
+    { id: 8, reflexive: false, name: "OBL-EUR", type: "ob" },
+    { id: 9, reflexive: false, name: "OBL-UK", type: "ob" },
+    { id: 10, reflexive: false, name: "OBL-US", type: "ob" },
+    { id: 11, reflexive: false, name: "GOLD", type: "aa" },
+    { id: 12, reflexive: false, name: "COMM", type: "aa" },
+    { id: 13, reflexive: false, name: "REAL", type: "aa" },
+    { id: 14, reflexive: false, name: "CHF", type: "fx" },
+    { id: 15, reflexive: false, name: "EUR", type: "fx" },
+    { id: 16, reflexive: false, name: "GBP", type: "fx" },
+    { id: 17, reflexive: false, name: "USD", type: "fx" },
+    { id: 18, reflexive: false, name: "AUD", type: "fx" },
 ];
 let lastNodeId = 2;
-const links = [
-    { source: nodes[0], target: nodes[1], left: false, right: true },
-    { source: nodes[1], target: nodes[2], left: false, right: true }
-];
+// const links = [
+//     { source: nodes[0], target: nodes[1], left: false, right: true },
+//     { source: nodes[1], target: nodes[2], left: false, right: true }
+// ];
+const links = [];
 
 // init D3 force layout
 const force = d3.forceSimulation()
@@ -47,7 +64,7 @@ const drag = d3.drag()
         d.fy = d3.event.y;
     })
     .on('end', (d) => {
-        if (!d3.event.active) force.alphaTarget(0);
+        if (!d3.event.active) force.alphaTarget(0.);
 
         d.fx = null;
         d.fy = null;
@@ -141,6 +158,7 @@ function restart() {
         .classed('selected', (d) => d === selectedLink)
         .style('marker-start', (d) => d.left ? 'url(#start-arrow)' : '')
         .style('marker-end', (d) => d.right ? 'url(#end-arrow)' : '')
+        .attr("stroke", 'red')
         .on('mousedown', (d) => {
             if (d3.event.ctrlKey) return;
 
@@ -158,7 +176,8 @@ function restart() {
 
     // update existing nodes (reflexive & selected visual states)
     circle.selectAll('circle')
-        .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
+        //.style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
+        .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors[d.type]).brighter().toString() : colors[d.type])
         .classed('reflexive', (d) => d.reflexive);
 
     // remove old nodes
@@ -170,22 +189,12 @@ function restart() {
     g.append('svg:circle')
         .attr('class', 'node')
         .attr('r', 12)
-        .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
-        .style('stroke', (d) => d3.rgb(colors(d.id)).darker().toString())
+        //.style('fill', (d) => (d === selectedNode) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id))
+        .style('fill', (d) => (d === selectedNode) ? d3.rgb(colors[d.type]).brighter().toString() : colors[d.type])
+        //.style('stroke', (d) => d3.rgb(colors(d.id)).darker().toString())
+        .style('stroke', (d) => d3.rgb(colors[d.type]).darker().toString())
         .classed('reflexive', (d) => d.reflexive)
-        // .on('mouseover', function (d) {
-        //     if (!mousedownNode || d === mousedownNode) return;
-        //     // enlarge target node
-        //     d3.select(this).attr('transform', 'scale(1.1)');
-        // })
         .on('mouseover', mouseover)
-        // .on('mouseout', function (d) {
-        //     console.log("mouseout", d === mouseoverNode)
-        //     if (d === mouseoverNode) {mouseout;}
-        //     if (!mousedownNode || d === mousedownNode) return;
-        //     // unenlarge target node
-        //     d3.select(this).attr('transform', '');
-        // })
         .on('mouseout', mouseout)
         .on('mousedown', (d) => {
             if (d3.event.ctrlKey) return;
@@ -213,6 +222,8 @@ function restart() {
 
             // check for drag-to-self
             mouseupNode = d;
+            console.log(mouseupNode);
+            console.log(mousedownNode);
             if (mouseupNode === mousedownNode) {
                 resetMouseVars();
                 return;
@@ -231,6 +242,7 @@ function restart() {
             if (link) {
                 link[isRight ? 'right' : 'left'] = true;
             } else {
+                console.log(source);
                 links.push({ source, target, left: !isRight, right: isRight });
             }
 
@@ -272,10 +284,10 @@ function restart() {
 
     // show node IDs
     g.append('svg:text')
-        .attr('x', 0)
+        .attr('x', 4)
         .attr('y', 4)
         .attr('class', 'id')
-        .text((d) => d.id);
+        .text((d) => d.name);
 
     circle = g.merge(circle);
 
@@ -386,6 +398,24 @@ function keydown() {
                 // set link direction to right only
                 selectedLink.left = false;
                 selectedLink.right = true;
+            }
+            restart();
+            break;
+        case 49: // 1
+            if (selectedLink) {
+                selectedLink.confidence = 1;
+            }
+            restart();
+            break;
+        case 50: // 2
+            if (selectedLink) {
+                selectedLink.confidence = 2;
+            }
+            restart();
+            break;
+        case 51: // 3
+            if (selectedLink) {
+                selectedLink.confidence = 3;
             }
             restart();
             break;
