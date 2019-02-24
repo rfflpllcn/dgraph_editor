@@ -3,6 +3,7 @@ const width = 960;
 const height = 500;
 //const colors = d3.scaleOrdinal(d3.schemeCategory10);
 const colors = {cash: "yellow", eq: "blue", ob: "green", aa: "orange", fx: "red"};
+const confidenceColors = {1: "lime", 2: "cyan", 3: "magenta"};
 
 var xScale = d3.scaleOrdinal()
     .domain([0, 1, 2])
@@ -23,8 +24,8 @@ var foci = {
     }
 };
 
-var forceX = d3.forceX((d) => foci[d.group].x);
-var forceY = d3.forceY((d) => foci[d.group].y);
+var forceX = d3.forceX((d) => foci[d.group]["x"]);
+var forceY = d3.forceY((d) => foci[d.group]["y"]);
 
 const svg = d3.select('body')
     .append('svg')
@@ -171,10 +172,13 @@ function restart() {
     // path (link) group
     path = path.data(links);
 
+    console.log("selectedLink", selectedLink);
+
     // update existing links
     path.classed('selected', (d) => d === selectedLink)
         .style('marker-start', (d) => d.left ? 'url(#start-arrow)' : '')
-        .style('marker-end', (d) => d.right ? 'url(#end-arrow)' : '');
+        .style('marker-end', (d) => d.right ? 'url(#end-arrow)' : '')
+        .style("stroke", (d) => confidenceColors[d.confidence]);
 
     // remove old links
     path.exit().remove();
@@ -185,7 +189,8 @@ function restart() {
         .classed('selected', (d) => d === selectedLink)
         .style('marker-start', (d) => d.left ? 'url(#start-arrow)' : '')
         .style('marker-end', (d) => d.right ? 'url(#end-arrow)' : '')
-        .attr("stroke", 'red')
+        //.attr("stroke", 'red')
+        .style("stroke", (d) => confidenceColors[d.confidence])
         .on('mousedown', (d) => {
             if (d3.event.ctrlKey) return;
 
@@ -270,7 +275,7 @@ function restart() {
                 link[isRight ? 'right' : 'left'] = true;
             } else {
                 console.log(source);
-                links.push({ source, target, left: !isRight, right: isRight });
+                links.push({ source, target, left: !isRight, right: isRight, confidence: 1 });
             }
 
             // select new link
