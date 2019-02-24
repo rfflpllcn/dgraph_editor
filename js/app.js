@@ -4,6 +4,28 @@ const height = 500;
 //const colors = d3.scaleOrdinal(d3.schemeCategory10);
 const colors = {cash: "yellow", eq: "blue", ob: "green", aa: "orange", fx: "red"};
 
+var xScale = d3.scaleOrdinal()
+    .domain([0, 1, 2])
+    .range([250, 500, 750   ]);
+
+var foci = {
+    "first" : {
+        "x" : xScale(0),
+        "y": height / 2
+    },
+    "second": {
+        "x" : xScale(1),
+        "y": height / 2
+    },
+    "third": {
+        "x" : xScale(2),
+        "y": height / 2
+    }
+};
+
+var forceX = d3.forceX((d) => foci[d.group].x);
+var forceY = d3.forceY((d) => foci[d.group].y);
+
 const svg = d3.select('body')
     .append('svg')
     .attr('oncontextmenu', 'return false;')
@@ -15,25 +37,25 @@ const svg = d3.select('body')
 //  - reflexive edges are indicated on the node (as a bold black circle).
 //  - links are always source < target; edge directions are set by 'left' and 'right'.
 const nodes = [
-    { id: 0, reflexive: false, name: "LIQ-CHF", type: "cash"},
-    { id: 1, reflexive: true, name: "EQ-WELT", type: "eq" },
-    { id: 2, reflexive: false, name: "OB-WELT", type: "ob" },
-    { id: 3, reflexive: false, name: "EQ-CH", type: "eq" },
-    { id: 4, reflexive: false, name: "EQ-EMU", type: "eq" },
-    { id: 5, reflexive: false, name: "EQ-UK", type: "eq" },
-    { id: 6, reflexive: false, name: "EQ-US", type: "eq" },
-    { id: 7, reflexive: false, name: "OBL-CHF", type: "ob" },
-    { id: 8, reflexive: false, name: "OBL-EUR", type: "ob" },
-    { id: 9, reflexive: false, name: "OBL-UK", type: "ob" },
-    { id: 10, reflexive: false, name: "OBL-US", type: "ob" },
-    { id: 11, reflexive: false, name: "GOLD", type: "aa" },
-    { id: 12, reflexive: false, name: "COMM", type: "aa" },
-    { id: 13, reflexive: false, name: "REAL", type: "aa" },
-    { id: 14, reflexive: false, name: "CHF", type: "fx" },
-    { id: 15, reflexive: false, name: "EUR", type: "fx" },
-    { id: 16, reflexive: false, name: "GBP", type: "fx" },
-    { id: 17, reflexive: false, name: "USD", type: "fx" },
-    { id: 18, reflexive: false, name: "AUD", type: "fx" },
+    { id: 0, reflexive: false, name: "LIQ-CHF", type: "cash", group: "first"},
+    { id: 1, reflexive: true, name: "EQ-WELT", type: "eq" , group: "first"},
+    { id: 2, reflexive: false, name: "OB-WELT", type: "ob", group: "first" },
+    { id: 3, reflexive: false, name: "EQ-CH", type: "eq", group: "first" },
+    { id: 4, reflexive: false, name: "EQ-EMU", type: "eq", group: "first" },
+    { id: 5, reflexive: false, name: "EQ-UK", type: "eq", group: "first" },
+    { id: 6, reflexive: false, name: "EQ-US", type: "eq", group: "first" },
+    { id: 7, reflexive: false, name: "OBL-CHF", type: "ob", group: "second" },
+    { id: 8, reflexive: false, name: "OBL-EUR", type: "ob", group: "second" },
+    { id: 9, reflexive: false, name: "OBL-UK", type: "ob", group: "second" },
+    { id: 10, reflexive: false, name: "OBL-US", type: "ob", group: "second" },
+    { id: 11, reflexive: false, name: "GOLD", type: "aa", group: "second" },
+    { id: 12, reflexive: false, name: "COMM", type: "aa", group: "second" },
+    { id: 13, reflexive: false, name: "REAL", type: "aa", group: "second" },
+    { id: 14, reflexive: false, name: "CHF", type: "fx", group: "third" },
+    { id: 15, reflexive: false, name: "EUR", type: "fx", group: "third" },
+    { id: 16, reflexive: false, name: "GBP", type: "fx", group: "third" },
+    { id: 17, reflexive: false, name: "USD", type: "fx", group: "third" },
+    { id: 18, reflexive: false, name: "AUD", type: "fx", group: "third" },
 ];
 let lastNodeId = 2;
 // const links = [
@@ -46,8 +68,12 @@ const links = [];
 const force = d3.forceSimulation()
     .force('link', d3.forceLink().id((d) => d.id).distance(50)) //forceLink: for creating a fixed distance between connected elements
     .force('charge', d3.forceManyBody().strength(-300)) //forceManyBody: for making elements attract or repel one another
-    .force('x', d3.forceX(width / 2))
-    .force('y', d3.forceY(height / 2))
+    // .force('x', d3.forceX(width / 2))
+    // .force('y', d3.forceY(height / 2))
+    //.velocityDecay(0.65)
+    .force('x', forceX)
+    .force('y', forceY)
+
     //.force('center', d3.forceCenter(100, 100))
     .on('tick', tick);
 
@@ -116,6 +142,7 @@ function resetMouseVars() {
     mousedownLink = null;
     mouseoverNode = null;
 }
+
 
 // update force layout (called automatically each iteration)
 function tick() {
