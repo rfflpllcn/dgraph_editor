@@ -314,10 +314,12 @@ function restart() {
             .attr("r", 12);
     }
 
-    // show node IDs
+    // show node name
     g.append('svg:text')
-        .attr('x', 4)
-        .attr('y', 4)
+        // .attr('x', 4)
+        // .attr('y', 4)
+        .attr("dx", 15)
+        .attr("dy", ".35em")
         .attr('class', 'id')
         .text((d) => d.name);
 
