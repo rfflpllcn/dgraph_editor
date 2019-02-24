@@ -2,7 +2,7 @@
 const width = 960;
 const height = 500;
 //const colors = d3.scaleOrdinal(d3.schemeCategory10);
-const colors = {cash: "yellow", eq: "blue", ob: "green", aa: "orange", fx: "red"};
+const colors = {cash: "yellow", eq: "deepskyblue", ob: "lightgreen", aa: "gold", fx: "red"};
 const confidenceColors = {1: "lime", 2: "cyan", 3: "magenta"};
 
 var xScale = d3.scaleOrdinal()
@@ -39,7 +39,7 @@ const svg = d3.select('body')
 //  - links are always source < target; edge directions are set by 'left' and 'right'.
 const nodes = [
     { id: 0, reflexive: false, name: "LIQ-CHF", type: "cash", group: "first"},
-    { id: 1, reflexive: true, name: "EQ-WELT", type: "eq" , group: "first"},
+    { id: 1, reflexive: false, name: "EQ-WELT", type: "eq" , group: "first"},
     { id: 2, reflexive: false, name: "OB-WELT", type: "ob", group: "first" },
     { id: 3, reflexive: false, name: "EQ-CH", type: "eq", group: "first" },
     { id: 4, reflexive: false, name: "EQ-EMU", type: "eq", group: "first" },
@@ -67,7 +67,7 @@ const links = [];
 
 // init D3 force layout
 const force = d3.forceSimulation()
-    .force('link', d3.forceLink().id((d) => d.id).distance(50)) //forceLink: for creating a fixed distance between connected elements
+    .force('link', d3.forceLink().id((d) => d.id).distance(100)) //forceLink: for creating a fixed distance between connected elements
     .force('charge', d3.forceManyBody().strength(-300)) //forceManyBody: for making elements attract or repel one another
     // .force('x', d3.forceX(width / 2))
     // .force('y', d3.forceY(height / 2))
